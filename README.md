@@ -68,17 +68,13 @@ It doesn’t replace LZ or Brotli — it complements them.
 
 ---
 
-## Contribution is appreciated
-
-This is an early research prototype.
-Feedback, issues, and pull requests are welcome.
-The goal is to explore a new philosophy of compression, not to dethrone Brotli !
-
----
-
 ## Usage example:
 
 python foe_cli.py compress input.bin output.foe dictionaries/foe_simple.json
 python foe_cli.py decompress output.foe restored.bin dictionaries/foe_simple.json
+
+# Contribution :
+This is an early research prototype.
+The goal is to explore a new philosophy of compression, not to dethrone Brotli !
 
 

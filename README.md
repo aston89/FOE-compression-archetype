@@ -7,6 +7,17 @@ This approach is especially useful for semi-structured or patterned data, such a
 
 ---
 
+## 🧬 Background
+
+The idea behind FOE came from a very early observation over 20 years ago:  
+a binary sequence is a number — and every number might have a minimal formula that generates it.  
+
+This inspired an exploration of symbolic compression through formula dictionaries,  
+now prototyped in FOE. While still experimental, the idea has matured with time  
+into a structure ready to be explored and evolved collaboratively.
+
+---
+
 ## Concept Summary
 
 - Binary chunks (e.g. 64-bit) are interpreted as large integers.

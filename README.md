@@ -7,7 +7,7 @@ This approach is especially useful for semi-structured or patterned data, such a
 
 ---
 
-## 🧬 Background
+## Background
 
 The idea behind FOE came from a very early observation over 20 years ago:  
 a binary sequence is a number — and every number might have a minimal formula that generates it.  

@@ -118,8 +118,14 @@ It doesn’t replace LZ or Brotli — it complements them.
 python foe_cli.py compress input.bin output.foe dictionaries/foe_simple.json
 python foe_cli.py decompress output.foe restored.bin dictionaries/foe_simple.json
 
-# Contribution :
-This is an early research prototype.
-The goal is to explore a new philosophy of compression, not to dethrone Brotli !
+---
+
+## 🤝 Contribute
+
+- Fork & edit dictionaries to add formulas
+- Open PRs for opcode enhancements (`DIV`, `SUB`, `REPEAT`)
+- Submit bug reports if compression or decompression mismatches
+- Suggest benchmarks (e.g., on images, logs, binaries)
+
 
 

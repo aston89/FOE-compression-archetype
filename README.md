@@ -119,7 +119,7 @@ python foe_cli.py decompress output.foe restored.bin dictionaries/foe_simple.jso
 
 ---
 
-## Contribute
+## Contribute:
 
 - Fork & edit dictionaries to add formulas
 - Open PRs for opcode enhancements (`DIV`, `SUB`, `REPEAT`)

@@ -38,11 +38,6 @@ To stay practical, FOE instead uses **compressed and filtered subsets**, priorit
 This also opens the door for:
 - Per-file-type dictionaries (e.g., JSON, audio, binary blobs)
 - Modular plugin-like dictionaries optimized for specific use cases
-- 
-
-
-
-
 
 ---
 

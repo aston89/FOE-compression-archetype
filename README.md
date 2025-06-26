@@ -82,7 +82,7 @@ Example:
 0x01        # MUL  
 0x10 0x03   # PUSH 3  
 0x02        # ADD  
-0xFE        # END  
+0xFE        # END``` 
 
 ---
 
@@ -120,7 +120,7 @@ python foe_cli.py decompress output.foe restored.bin dictionaries/foe_simple.jso
 
 ---
 
-## 🤝 Contribute
+## Contribute
 
 - Fork & edit dictionaries to add formulas
 - Open PRs for opcode enhancements (`DIV`, `SUB`, `REPEAT`)

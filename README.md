@@ -82,9 +82,8 @@ Example:
 0x01        # MUL  
 0x10 0x03   # PUSH 3  
 0x02        # ADD  
-0xFE        # END``` 
-
----
+0xFE        # END
+``` 
 
 ## Compression Workflow:
 Split binary data into fixed-length chunks (e.g., 64-bit).

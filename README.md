@@ -1,9 +1,48 @@
+# Disclaimer: Read this before you lose your mind over this algorithm concept.
+
+The original idea was simple: compress decimal integers extracted from binary chunks by representing them using minimalistic math formulas, relying only on basic operators like +, *, ^, √...
+All encoded using 4-bit nibbles, that gives you 16 symbols to work with.
+
+On paper? Intriguing.
+In practice? Hello overhead !
+
+Even if you optimize the structure of the compressed file, you still need to distinguish whether a chunk is a formula or raw data. So, you end up needing identifiers like FOR or RAW, and for a 32-bit chunk, that means 40 bits in case of a dictionary miss which already makes it larger than the original data.
+
+Yes, you can use a dictionary but...
+
+A complete dictionary that maps every 32-bit integer to its optimal formula takes up tens of gigabytes, assuming that such a shorter formula even exists for every value (spoiler alert: often, it doesn't, not using limited set of operators).
+If your formula takes more than 7 nibbles + the chunk identifier, you've already lost to the original binary.
+
+So what's the workaround? Bigger chunks !
+let’s try 64-bit blocks, right? Well, in that case, your dictionary would swell to about 6 petabytes... Going further? 128-bit? 256-bit? Sure, now you're in "only store it if it's actually shorter" territory.
+Clever idea... but feasible? Only if you’ve got access to CERN’s compute grid.
+
+In short: 32-bit chunks are a decent compromise between file size and lookup feasibility.
+The dictionary helps, but if it only holds useful formulas for, say, 6% of the inputs, you're already writing more than you're shaving off.
+
+You could expand the operator set with cool stuff like log, sin, cos, tan, (etc etc) but that skyrockets the search space and complexity of finding the "shortest" formula per value.
+Unless you precompute everything (enjoy that), the system theorically only becomes viable with a brutally minimal operator set and a very carefully crafted dictionary.
+Above 64-bit chunks, CPU cost becomes nightmarish and decompression without a dictionary? Basically an act of faith.
+
+There’s one possible way forward: leverage 128, 256, or 512-bit registers (AVX instructions) to apply formulas in parallel but then you're limited to what those vectorized instructions allow.
+(I haven’t explored that path deeply, mostly for backward compatibility reasons)
+
+A more realistic approach is to treat this not as a standalone compression method but as an add-on to traditional compressors letting it scan the file dynamically for "hard-to-compress" sequences and try to apply formula-based compression selectively.
+The prototype I published in Python is far from optimized or dynamic, it simulates an op instruction set and explores different formula compositions to find shorter representations but doesnt actually compress anything, keep that in mind.
+
+TL;DR:
+This is more of a mental puzzle than a real-world alternative to standard compression algorithms.
+
+---
+
 # FOE: Functional Opcode Encoding
 
 FOE (Functional Opcode Encoding) is a novel compression prototype that represents binary data chunks as stack-based symbolic formulas using a custom bytecode language.
 
 Unlike traditional entropy-based compressors (like LZ77, Huffman, Brotli), FOE attempts to *describe* binary values using simple mathematical expressions encoded in opcodes (e.g., `PUSH`, `MUL`, `ADD`, `SHL`).  
 This approach is especially useful for semi-structured or patterned data, such as logs, telemetry, numerical datasets, or static configuration blocks.
+
+
 
 ## Precomputed Formula Dictionaries
 

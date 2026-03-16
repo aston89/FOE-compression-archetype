@@ -1,33 +1,21 @@
-# Disclaimer: Read this before you lose your mind over this algorithm concept.
+# Disclaimer:
+The original goal was to go above and beyond Kolmogorov law by simplyfing an immense integer into a brief representation using recombinatory algorythms with symbolic regression, recursive pattern matching etc etc, in theory it's possible by using extremely complex methods that defy kolmogorov law but unfortunately, due to the lack of resources it became instead an optimization exercise to reduce the weight of binary files such as interpreting decimal integers extracted from binary chunks and representing them using minimalistic math formulas relying only on basic operators like +, *, ^, √ encoded using 4-bit nibbles giving you 16 symbols to work with.
+Even with this minimalistic approach, in the compressed file structure you will still need to distinguish whether a chunk is a formula or raw data, so, you'll need identifiers like FOR or RAW (15th and 16th symbols) which will add 4bit as a symbol for every formula or raw chunk. 
 
-The original idea was simple: compress decimal integers extracted from binary chunks by representing them using minimalistic math formulas, relying only on basic operators like +, *, ^, √...
-All encoded using 4-bit nibbles, that gives you 16 symbols to work with.
-
-On paper? Intriguing.
-In practice? Hello overhead !
-
-Even if you optimize the structure of the compressed file, you still need to distinguish whether a chunk is a formula or raw data. So, you end up needing identifiers like FOR or RAW, and for a 32-bit chunk, that means 40 bits in case of a dictionary miss which already makes it larger than the original data.
-
-Yes, you can use a dictionary but...
-
-A complete dictionary that maps every 32-bit integer to its optimal formula takes up tens of gigabytes, assuming that such a shorter formula even exists for every value (spoiler alert: often, it doesn't, not using limited set of operators).
-If your formula takes more than 7 nibbles + the chunk identifier, you've already lost to the original binary.
+Creating a complete dictionary that maps every 32-bit integer to its optimal formula is impossible by design using this minimalistic approach but imagine if it could be possible, it would takes up tens of gigabytes.
+If the formula takes more than 7 nibbles + the symbol identifier (FOR), you've already expanded the original file size instead of compressing it.
 
 So what's the workaround? Bigger chunks !
-let’s try 64-bit blocks, right? Well, in that case, your dictionary would swell to about 6 petabytes... Going further? 128-bit? 256-bit? Sure, now you're in "only store it if it's actually shorter" territory.
-Clever idea... but feasible? Only if you’ve got access to CERN’s compute grid.
+let’s think about 64-bit blocks then, right? Well, in that case, your dictionary would swell to about 6 petabytes... Going further? 128-bit? 256-bit? Sure, clever idea if only you could have got access to CERN’s compute grid to still have an incomplete db.
+32-bit chunks are a decent compromise between file size and lookup feasibility on a database.
+The dictionary could help, but only if it holds useful formulas for, say, 6% of the inputs and you're already writing more than you're shaving off.
 
-In short: 32-bit chunks are a decent compromise between file size and lookup feasibility.
-The dictionary helps, but if it only holds useful formulas for, say, 6% of the inputs, you're already writing more than you're shaving off.
+You could expand the operator set with cool stuff like log, sin, cos, tan, (it was the original intent) but that skyrockets the complexity of finding the "shortest" formula per value and need to use 8bit instead of 4 for a single symbol.
 
-You could expand the operator set with cool stuff like log, sin, cos, tan, (etc etc) but that skyrockets the search space and complexity of finding the "shortest" formula per value.
-Unless you precompute everything (enjoy that), the system theorically only becomes viable with a brutally minimal operator set and a very carefully crafted dictionary.
-Above 64-bit chunks, CPU cost becomes nightmarish and decompression without a dictionary? Basically an act of faith.
+The system theorically only becomes viable with a brutally minimal operator set and a very carefully crafted dictionary.
 
-There’s one possible way forward: leverage 128, 256, or 512-bit registers (AVX instructions) to apply formulas in parallel but then you're limited to what those vectorized instructions allow.
-(I haven’t explored that path deeply, mostly for backward compatibility reasons)
+A more realistic approach is to consider this not as a standalone compression method but as an add-on to traditional compressors letting it scan the file dynamically for "hard-to-compress" sequences and try to apply formula-based compression selectively.
 
-A more realistic approach is to treat this not as a standalone compression method but as an add-on to traditional compressors letting it scan the file dynamically for "hard-to-compress" sequences and try to apply formula-based compression selectively.
 The prototype I published in Python is far from optimized or dynamic, it simulates an op instruction set and explores different formula compositions to find shorter representations but doesnt actually compress anything, keep that in mind.
 
 TL;DR:
@@ -36,93 +24,42 @@ This is more of a mental puzzle than a real-world alternative to standard compre
 ---
 
 # FOE: Functional Opcode Encoding
+FOE (Functional Opcode Encoding) is a compression prototype that represents binary data chunks as stack-based symbolic formulas using a custom bytecode language.
 
-FOE (Functional Opcode Encoding) is a novel compression prototype that represents binary data chunks as stack-based symbolic formulas using a custom bytecode language.
-
-Unlike traditional entropy-based compressors (like LZ77, Huffman, Brotli), FOE attempts to *describe* binary values using simple mathematical expressions encoded in opcodes (e.g., `PUSH`, `MUL`, `ADD`, `SHL`).  
+Unlike traditional entropy-based compressors (like LZ77, Huffman, Brotli), FOE attempts to *describe* binary values using simple mathematical expressions encoded in opcodes. 
 This approach is especially useful for semi-structured or patterned data, such as logs, telemetry, numerical datasets, or static configuration blocks.
 
-
-
 ## Precomputed Formula Dictionaries
-
 Unlike traditional compressors that rely on real-time pattern matching or entropy models,  
 FOE is designed around the concept of **precomputed symbolic transformation**.
-
-Each 64-bit chunk is either:
-- represented by a mathematical formula selected from a precalculated set, or
-- stored as raw data when no match is found.
+Each 32-bit chunk is either:
+* represented by a mathematical formula selected from a precalculated set
+* stored as raw data when no match is found.
 
 ### Why precomputed?
-
 Attempting to **dynamically discover formulas** at runtime would require:
-- Extremely high CPU usage
-- Deep recursive search
-- Symbolic regression engines or SAT solvers
+* Extremely high CPU usage
+* Deep recursive search
+* Symbolic regression engines or SAT solvers
 
 To avoid this, FOE relies on dictionaries of **pre-brute-forced formulas** matching integer outputs.
-
 These dictionaries were generated by exhaustively computing simple formulas across a large set of inputs.  
 While this method produces efficient matching and ultra-fast decompression, it comes at a storage cost.
 
 Even using the most compact encoding possible, the storage required would be:
-    ~3 to 6 petabytes, depending on formula structure and encoding strategy
-    Not including lookup acceleration indexes or metadata
-    Beyond the capabilities of standard consumer-grade hardware
-    As a result, FOE operates using selective, handcrafted or semi-brute-forced dictionaries,
-    limiting scope in exchange for practical usability and experimental value.
-
-To stay practical, FOE instead uses **compressed and filtered subsets**, prioritizing the most statistically relevant or reusable formulas.
-
-This also opens the door for:
-- Per-file-type dictionaries (e.g., JSON, audio, binary blobs)
-- Modular plugin-like dictionaries optimized for specific use cases
-
----
+* ~3 to ~6 petabytes, depending on formula structure and encoding strategy
+* Not including lookup acceleration indexes or metadata
+* Beyond the capabilities of standard consumer-grade hardware
+* As a result, FOE operates using selective, handcrafted or semi-brute-forced dictionaries,
+* limiting scope in exchange for practical usability and experimental value.
 
 ## Background
-
 The idea behind FOE came from a very early observation over 20 years ago:  
 a binary sequence is a number — and every number might have a minimal formula that generates it.  
 
 This inspired an exploration of symbolic compression through formula dictionaries,  
 now prototyped in FOE. While still experimental, the idea has matured with time  
 into a structure ready to be explored and evolved collaboratively.
-
----
-
-## Concept Summary
-
-- Binary chunks (e.g. 64-bit) are interpreted as large integers.
-- A small virtual machine with a symbolic instruction set (bytecode) is used to generate mathematical expressions.
-- If a formula evaluates to a chunk’s value, we store the formula’s ID instead of the raw data.
-- A dictionary of formulas acts as the compression vocabulary (shared between encoder and decoder).
-- The system is modular and stack-based for minimal runtime cost and compatibility with embedded systems.
-
----
-
-## Opcode Set (v0.1)
-
-| Opcode | Mnemonic | Action                           |
-|--------|----------|----------------------------------|
-| `0x10` | `PUSH`   | Push a 1-byte literal to stack   |
-| `0x01` | `MUL`    | Multiply top two stack values    |
-| `0x02` | `ADD`    | Add top two stack values         |
-| `0x03` | `SHL`    | Bitwise left shift               |
-| `0x04` | `XOR`    | Bitwise XOR                      |
-| `0x05` | `MOD`    | Modulo                           |
-| `0xF0` | `REF`    | Reference a precomputed formula  |
-| `0xFE` | `END`    | End of formula                   |
-
-Example:
-```hex
-0x10 0x06   # PUSH 6  
-0x10 0x09   # PUSH 9  
-0x01        # MUL  
-0x10 0x03   # PUSH 3  
-0x02        # ADD  
-0xFE        # END
-``` 
 
 ## Compression Workflow:
 Split binary data into fixed-length chunks (e.g., 64-bit).
@@ -132,38 +69,13 @@ If found, store its ID (e.g. 2 bytes)
 Else, store the raw data with a marker flag (e.g. 9 bytes)
 Total file size = matched formulas + unmatched raw chunks.
 
----
-
-## Test Results:
-File Type	Match Rate	Compression Gain
-Structured BIN	~20%	~5–12%
+## Theoretical test results :
+Structured BIN	from ~20% to ~5–12%
 Randomized BIN	<1%	Negative
-The current prototype uses a dictionary with ~400 formulas like PUSH a, PUSH b, OP, END.
-Larger dictionaries (and recursive formulas) improve match rate but increase dictionary size.
-
----
-
-## Why?
-Traditional compression relies on symbol frequency and entropy modeling. FOE proposes a different perspective:
-If a value is mathematically expressible with low cost (few opcodes), then that expression is a form of compression.
-
-It doesn’t replace LZ or Brotli — it complements them.
-
----
+(using a dictionary with ~400 formulas).
 
 ## Usage example:
-
 python foe_cli.py compress input.bin output.foe dictionaries/foe_simple.json
 python foe_cli.py decompress output.foe restored.bin dictionaries/foe_simple.json
-
----
-
-## Contribute:
-
-- Fork & edit dictionaries to add formulas
-- Open PRs for opcode enhancements (`DIV`, `SUB`, `REPEAT`)
-- Submit bug reports if compression or decompression mismatches
-- Suggest benchmarks (e.g., on images, logs, binaries)
-
 
 
